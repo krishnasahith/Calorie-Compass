@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calorie Compass</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-badge">CC</div>
+          <div>
+            <h2>Calorie Compass</h2>
+            <p class="small">Your daily health dashboard</p>
+          </div>
+        </div>
+        <nav class="nav">
+          <button class="nav-btn active" data-nav="home">Home</button>
+          <button class="nav-btn" data-nav="log">Log</button>
+          <button class="nav-btn" data-nav="progress">Progress</button>
+          <button class="nav-btn" data-nav="mealplan">Meal Plan</button>
+          <button class="nav-btn" data-nav="plates">Meal Plates</button>
+          <button class="nav-btn" data-nav="profile">Profile</button>
+          <button class="nav-btn" data-nav="integrations">Integrations</button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="small">Consistency beats intensity.</div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <h3 id="todayTitle">Today Overview</h3>
+            <p class="small" id="todayDate"></p>
+          </div>
+          <div class="topbar-actions">
+            <input class="input" type="date" id="datePicker" />
+            <div class="user-pill">
+              <img id="userAvatar" class="avatar small" alt="User" />
+              <span id="userName">Loading...</span>
+              <button class="icon-btn" id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </header>
+
+        <section class="page-section active" data-section="home">
+          <div class="grid">
+            <section class="card">
+              <h3>Daily Snapshot</h3>
+              <p class="small">Calories, macros, and cost at a glance.</p>
+              <div class="summary-row" id="summaryCards"></div>
+              <div class="insight-grid" style="margin-top: 16px;">
+                <div class="insight-card">
+                  <div class="small">Diet Score</div>
+                  <div class="score" id="dietScoreValue">--</div>
+                  <div class="small" id="dietScoreLabel">Waiting for data</div>
+                </div>
+                <div class="insight-card">
+                  <div class="small">Consistency</div>
+                  <div class="score" id="consistencyValue">--</div>
+                  <div class="small" id="consistencyLabel">Last 7 days</div>
+                </div>
+                <div class="insight-card">
+                  <div class="small">Projection</div>
+                  <div class="score" id="projectionValue">--</div>
+                  <div class="small" id="projectionLabel">Goal timeline</div>
+                </div>
+              </div>
+              <div class="ration-grid" id="rationGrid" style="margin-top: 16px;"></div>
+              <div style="margin-top: 16px;">
+                <h3>Macro Split</h3>
+                <p class="small">Balance check for carbs, protein, and fat.</p>
+                <div class="progress" style="height: 14px;">
+                  <span id="macroSplit" style="width: 0%; background: linear-gradient(90deg, #1b8a6b 0%, #ff6f3c 50%, #0c4a6e 100%);"></span>
+                </div>
+                <div class="small" id="macroSplitLabel"></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3>Weekly Trend</h3>
+              <p class="small">Your calorie trend for the last 7 days.</p>
+              <div class="chart" id="calorieTrendChart"></div>
+              <div class="list" style="margin-top: 12px;" id="recommendationPanel"></div>
+              <div class="plan-controls">
+                <div class="field">
+                  <label for="plannedCalories">Planned calories</label>
+                  <input class="input" type="number" id="plannedCalories" min="800" max="6000" />
+                </div>
+                <label class="chip"><input type="checkbox" id="useSuggestedCalories" /> Apply suggested calories</label>
+                <button class="btn btn-ghost" type="button" id="savePlannedCalories">Update Projection</button>
+                <div class="small status" id="plannedCaloriesStatus"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-section="log">
+          <div class="grid">
+            <section class="card">
+              <h3>Add Food</h3>
+              <p class="small">Type a food name and grams. We will do the macro math.</p>
+              <p class="small">If a food is not in your list, AI can estimate macros and save it (when enabled).</p>
+              <form id="addEntryForm" class="inline-form" autocomplete="off">
+                <div class="field suggestions">
+                  <label for="foodName">Food name</label>
+                  <input class="input" type="text" id="foodName" placeholder="e.g. Chicken breast" />
+                  <div class="suggestion-list" id="suggestionList" style="display: none;"></div>
+                </div>
+                <div class="field">
+                  <label for="foodGrams">Grams</label>
+                  <input class="input" type="number" id="foodGrams" min="1" placeholder="100" />
+                </div>
+                <div class="field">
+                  <label for="mealType">Meal</label>
+                  <select class="select" id="mealType">
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack" selected>Snack</option>
+                  </select>
+                </div>
+                <button class="btn" type="submit">Add</button>
+              </form>
+              <div class="small" id="foodDetails"></div>
+              <div class="error" id="entryError"></div>
+
+              <div style="margin-top: 18px;">
+                <div class="section-title">
+                  <h3>Favorites</h3>
+                  <button class="icon-btn" id="refreshFavorites">Refresh</button>
+                </div>
+                <div class="chips" id="favoriteList"></div>
+              </div>
+
+              <div style="margin-top: 18px;">
+                <div class="section-title">
+                  <h3>Recent Foods</h3>
+                </div>
+                <div class="chips" id="recentList"></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Daily Log</h3>
+                  <p class="small">Your entries for the selected date.</p>
+                </div>
+                <button class="icon-btn" id="exportCsv">Export CSV</button>
+              </div>
+              <div class="section-title" style="margin-top: 12px;">
+                <div>
+                  <h3>Quick Plates</h3>
+                  <p class="small">Add a saved plate to this day.</p>
+                </div>
+                <select class="select" id="quickPlateMeal">
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack" selected>Snack</option>
+                </select>
+              </div>
+              <div class="chips" id="quickPlateList"></div>
+              <div class="small status" id="quickPlateStatus"></div>
+              <div class="list" id="entriesList"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-section="progress">
+          <div class="grid">
+            <section class="card">
+              <h3>Weight Tracking</h3>
+              <p class="small">Track your weight every day for accurate trends.</p>
+              <form id="weightForm" class="inline-form">
+                <div class="field">
+                  <label for="weightValue">Weight</label>
+                  <input class="input" type="number" id="weightValue" step="0.1" />
+                </div>
+                <div class="field">
+                  <label for="weightUnit">Unit</label>
+                  <select class="select" id="weightUnit">
+                    <option value="kg">kg</option>
+                    <option value="lb">lb</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="weightDate">Date</label>
+                  <input class="input" type="date" id="weightDate" />
+                </div>
+                <button class="btn" type="submit">Save Weight</button>
+              </form>
+              <div class="small status" id="weightStatus"></div>
+              <div class="chart" id="weightChart"></div>
+            </section>
+
+            <section class="card">
+              <h3>Body Measurements</h3>
+              <p class="small">Log inches or centimeters to see changes beyond the scale.</p>
+              <form id="measureForm">
+                <div class="summary-row">
+                  <div class="field">
+                    <label for="measureUnit">Unit</label>
+                    <select class="select" id="measureUnit">
+                      <option value="cm">cm</option>
+                      <option value="in">in</option>
+                      <option value="m">m</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="measureDate">Date</label>
+                    <input class="input" type="date" id="measureDate" />
+                  </div>
+                  <div class="field">
+                    <label for="measureWaist">Waist</label>
+                    <input class="input" type="number" id="measureWaist" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="measureChest">Chest</label>
+                    <input class="input" type="number" id="measureChest" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="measureHip">Hip</label>
+                    <input class="input" type="number" id="measureHip" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="measureThigh">Thigh</label>
+                    <input class="input" type="number" id="measureThigh" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="measureArm">Arm</label>
+                    <input class="input" type="number" id="measureArm" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="measureNeck">Neck</label>
+                    <input class="input" type="number" id="measureNeck" step="0.1" />
+                  </div>
+                </div>
+                <button class="btn" type="submit" style="margin-top: 10px;">Save Measurements</button>
+              </form>
+              <div class="small status" id="measureStatus"></div>
+              <div class="chart" id="waistChart"></div>
+            </section>
+          </div>
+
+          <div class="grid" style="margin-top: 20px;">
+            <section class="card">
+              <h3>Activity & Recovery</h3>
+              <p class="small">Steps, sleep, and resting heart rate for a full picture.</p>
+              <form id="activityForm" class="summary-row">
+                <div class="field">
+                  <label for="activityDate">Date</label>
+                  <input class="input" type="date" id="activityDate" />
+                </div>
+                <div class="field">
+                  <label for="activitySteps">Steps</label>
+                  <input class="input" type="number" id="activitySteps" min="0" />
+                </div>
+                <div class="field">
+                  <label for="activitySleep">Sleep (hrs)</label>
+                  <input class="input" type="number" id="activitySleep" step="0.1" min="0" />
+                </div>
+                <div class="field">
+                  <label for="activityRhr">Resting HR</label>
+                  <input class="input" type="number" id="activityRhr" step="0.1" min="30" />
+                </div>
+                <div class="field">
+                  <label for="activityCalories">Active kcal</label>
+                  <input class="input" type="number" id="activityCalories" step="1" min="0" />
+                </div>
+                <button class="btn" type="submit">Save Activity</button>
+              </form>
+              <div class="small status" id="activityStatus"></div>
+              <div class="chart" id="stepsChart"></div>
+              <div class="chart" id="sleepChart"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-section="mealplan">
+          <div class="grid">
+            <section class="card">
+              <h3>AI Meal Plan Builder</h3>
+              <p class="small">Tell us your health context and preferences. We will build a weekly plan.</p>
+              <form id="mealPlanForm">
+                <div class="field">
+                  <label for="mealPlanHealth">Health complications (required)</label>
+                  <input class="input" type="text" id="mealPlanHealth" placeholder="e.g. none, lactose intolerance, diabetes" />
+                </div>
+                <div class="field">
+                  <label for="mealPlanPreferences">Preferences</label>
+                  <input class="input" type="text" id="mealPlanPreferences" placeholder="e.g. high protein, South Indian, no seafood" />
+                </div>
+                <div class="field">
+                  <label for="mealPlanAvoid">Avoid</label>
+                  <input class="input" type="text" id="mealPlanAvoid" placeholder="e.g. peanuts, fried foods" />
+                </div>
+                <label class="chip"><input type="checkbox" id="mealPlanUseRations" /> Use saved plates as primary rations</label>
+                <button class="btn" type="submit" style="margin-top: 12px;">Generate Meal Plan</button>
+              </form>
+              <div class="small status" id="mealPlanStatus"></div>
+              <div class="small" style="margin-top: 10px;">Caution: AI-generated meal plans should be reviewed with a professional if you have medical conditions.</div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Current Plan</h3>
+                  <p class="small">Editable and regeneratable based on your progress.</p>
+                </div>
+                <button class="icon-btn" id="mealPlanRegenerate">Regenerate</button>
+              </div>
+              <div class="small" id="mealPlanMeta"></div>
+              <div class="meal-plan" id="mealPlanDisplay"></div>
+              <button class="btn btn-ghost" type="button" id="mealPlanEditToggle" style="margin-top: 12px;">Edit Plan (JSON)</button>
+              <div class="field" id="mealPlanEditorWrap" style="display: none; margin-top: 12px;">
+                <label for="mealPlanEditor">Edit plan JSON</label>
+                <textarea class="textarea" id="mealPlanEditor" rows="10"></textarea>
+                <button class="btn" type="button" id="mealPlanSave" style="margin-top: 10px;">Save Edited Plan</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-section="plates">
+          <div class="grid">
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Meal Plates & Rations</h3>
+                  <p class="small">Save meal plates and log them in one tap.</p>
+                </div>
+                <select class="select" id="plateMeal">
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack" selected>Snack</option>
+                </select>
+              </div>
+              <div class="plate-builder">
+                <div class="field">
+                  <label for="plateName">Plate name</label>
+                  <input class="input" type="text" id="plateName" placeholder="e.g. Post-workout plate" />
+                </div>
+                <div class="inline-form" style="margin-top: 10px;">
+                  <div class="field suggestions">
+                    <label for="plateFoodName">Food name</label>
+                    <input class="input" type="text" id="plateFoodName" placeholder="e.g. Rice" />
+                    <div class="suggestion-list" id="plateSuggestionList" style="display: none;"></div>
+                  </div>
+                  <div class="field">
+                    <label for="plateFoodGrams">Grams</label>
+                    <input class="input" type="number" id="plateFoodGrams" min="1" />
+                  </div>
+                  <button class="btn" type="button" id="addPlateItem">Add Item</button>
+                </div>
+                <div class="list" id="plateItemList" style="margin-top: 12px;"></div>
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                  <button class="btn" type="button" id="savePlate">Save Plate</button>
+                  <button class="btn btn-ghost" type="button" id="clearPlate">Clear</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Saved Plates</h3>
+                  <p class="small">Log plates to the selected date.</p>
+                </div>
+                <button class="icon-btn" id="refreshPlates">Refresh</button>
+              </div>
+              <div class="list" id="plateList"></div>
+            </section>
+          </div>
+
+          <div class="grid" style="margin-top: 20px;">
+            <section class="card">
+              <h3>Ration Inventory</h3>
+              <p class="small">Track pantry stock, quantities, and cost per unit.</p>
+              <form id="rationForm">
+                <div class="summary-row">
+                  <div class="field">
+                    <label for="rationName">Item name</label>
+                    <input class="input" type="text" id="rationName" placeholder="e.g. Rice" />
+                  </div>
+                  <div class="field">
+                    <label for="rationQty">Quantity</label>
+                    <input class="input" type="number" id="rationQty" min="0" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="rationUnit">Unit</label>
+                    <select class="select" id="rationUnit">
+                      <option value="g">g</option>
+                      <option value="kg">kg</option>
+                      <option value="pcs">pcs</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="rationGramsPerUnit">Grams per unit (optional)</label>
+                    <input class="input" type="number" id="rationGramsPerUnit" min="0" step="1" />
+                  </div>
+                  <div class="field">
+                    <label for="rationCost">Cost per unit</label>
+                    <input class="input" type="number" id="rationCost" min="0" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="rationCurrency">Currency</label>
+                    <input class="input" type="text" id="rationCurrency" placeholder="USD" />
+                  </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                  <button class="btn" type="submit" id="rationSaveBtn">Save Item</button>
+                  <button class="btn btn-ghost" type="button" id="rationClearBtn">Clear</button>
+                </div>
+              </form>
+              <div class="small status" id="rationStatus"></div>
+              <div class="list" id="rationList" style="margin-top: 12px;"></div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Ration Forecast</h3>
+                  <p class="small">Estimate 7-day needs from your recent logs.</p>
+                </div>
+                <button class="icon-btn" id="rationEstimateBtn">Estimate</button>
+              </div>
+              <div class="list" id="rationEstimate"></div>
+              <div class="small status" id="rationEstimateStatus"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-section="profile">
+          <div class="grid">
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Profile & Goals</h3>
+                  <p class="small">Use your profile to calculate BMI, calories, and goals.</p>
+                </div>
+                <button class="icon-btn" id="suggestTargets">Suggest Targets</button>
+              </div>
+              <div class="avatar-row">
+                <img id="profileAvatarPreview" class="avatar" alt="Profile" />
+                <div>
+                  <div class="small">Profile photo</div>
+                  <input class="input" type="file" id="profileAvatarInput" accept="image/*" />
+                  <button class="btn btn-ghost" type="button" id="saveAvatar">Save Photo</button>
+                  <div class="small status" id="avatarStatus"></div>
+                </div>
+              </div>
+              <form id="profileForm">
+                <div class="summary-row">
+                  <div class="field">
+                    <label for="profileName">Name</label>
+                    <input class="input" type="text" id="profileName" />
+                  </div>
+                  <div class="field">
+                    <label for="profileEmail">Email</label>
+                    <input class="input" type="email" id="profileEmail" disabled />
+                  </div>
+                  <div class="field">
+                    <label for="profilePhone">Phone</label>
+                    <input class="input" type="text" id="profilePhone" placeholder="+1..." />
+                  </div>
+                  <div class="field">
+                    <label for="profileSex">Sex</label>
+                    <select class="select" id="profileSex">
+                      <option value="unspecified">Prefer not to say</option>
+                      <option value="female">Female</option>
+                      <option value="male">Male</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="profileBirthYear">Birth year</label>
+                    <input class="input" type="number" id="profileBirthYear" min="1900" max="2026" />
+                  </div>
+                  <div class="field">
+                    <label for="profileHeight">Height</label>
+                    <input class="input" type="number" id="profileHeight" min="90" max="250" />
+                  </div>
+                  <div class="field">
+                    <label for="profileHeightUnit">Height unit</label>
+                    <select class="select" id="profileHeightUnit">
+                      <option value="cm">cm</option>
+                      <option value="in">in</option>
+                      <option value="m">m</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="profileActivity">Activity level</label>
+                    <select class="select" id="profileActivity">
+                      <option value="sedentary">Sedentary</option>
+                      <option value="light">Light (1-3x/week)</option>
+                      <option value="moderate">Moderate (3-5x/week)</option>
+                      <option value="very">Very active</option>
+                      <option value="athlete">Athlete</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="profileGoal">Goal</label>
+                    <select class="select" id="profileGoal">
+                      <option value="lose">Fat loss</option>
+                      <option value="maintain">Maintain</option>
+                      <option value="gain">Gain</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="profileGoalWeight">Goal weight</label>
+                    <input class="input" type="number" id="profileGoalWeight" min="30" max="300" />
+                  </div>
+                  <div class="field">
+                    <label for="profileWeightUnit">Weight unit</label>
+                    <select class="select" id="profileWeightUnit">
+                      <option value="kg">kg</option>
+                      <option value="lb">lb</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="profilePace">Goal pace (kg/week)</label>
+                    <input class="input" type="number" id="profilePace" min="0.1" max="1.5" step="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="profileCurrency">Currency</label>
+                    <input class="input" type="text" id="profileCurrency" placeholder="USD" />
+                  </div>
+                </div>
+                <button class="btn" type="submit" style="margin-top: 10px;">Save Profile</button>
+              </form>
+              <div class="small status" id="profileStatus"></div>
+              <div class="profile-metrics" id="profileMetrics"></div>
+            </section>
+
+            <section class="card">
+              <h3>Daily Targets</h3>
+              <p class="small">Customize your nutrition targets anytime.</p>
+              <form id="targetsForm">
+                <div class="summary-row">
+                  <div class="field">
+                    <label for="targetCalories">Calories</label>
+                    <input class="input" type="number" id="targetCalories" min="1200" max="6000" />
+                  </div>
+                  <div class="field">
+                    <label for="targetProtein">Protein (g)</label>
+                    <input class="input" type="number" id="targetProtein" min="20" max="500" />
+                  </div>
+                  <div class="field">
+                    <label for="targetCarbs">Carbs (g)</label>
+                    <input class="input" type="number" id="targetCarbs" min="20" max="700" />
+                  </div>
+                  <div class="field">
+                    <label for="targetFat">Fat (g)</label>
+                    <input class="input" type="number" id="targetFat" min="10" max="300" />
+                  </div>
+                  <div class="field">
+                    <label for="targetFiber">Fiber (g)</label>
+                    <input class="input" type="number" id="targetFiber" min="5" max="100" />
+                  </div>
+                  <div class="field">
+                    <label for="targetSodium">Sodium (mg)</label>
+                    <input class="input" type="number" id="targetSodium" min="500" max="5000" />
+                  </div>
+                  <div class="field">
+                    <label for="targetCost">Daily Food Cost</label>
+                    <input class="input" type="number" id="targetCost" min="0" step="0.1" />
+                  </div>
+                </div>
+                <button class="btn" type="submit" style="margin-top: 10px;">Save Targets</button>
+              </form>
+              <div class="small status" id="targetsStatus"></div>
+            </section>
+          </div>
+
+          <div class="grid" style="margin-top: 20px;">
+            <section class="card">
+              <div class="section-title">
+                <div>
+                  <h3>Privacy & QR</h3>
+                  <p class="small">Choose what your public profile shows.</p>
+                </div>
+              </div>
+              <form id="privacyForm">
+                <div class="summary-row">
+                  <label class="chip"><input type="checkbox" id="privacyName" /> Name</label>
+                  <label class="chip"><input type="checkbox" id="privacyEmail" /> Email</label>
+                  <label class="chip"><input type="checkbox" id="privacyPhone" /> Phone</label>
+                  <label class="chip"><input type="checkbox" id="privacyHeight" /> Height</label>
+                  <label class="chip"><input type="checkbox" id="privacyWeight" /> Weight</label>
+                  <label class="chip"><input type="checkbox" id="privacyBmi" /> BMI</label>
+                  <label class="chip"><input type="checkbox" id="privacyMeasurements" /> Measurements</label>
+                  <label class="chip"><input type="checkbox" id="privacyGoal" /> Goal</label>
+                  <label class="chip"><input type="checkbox" id="privacyActivity" /> Activity</label>
+                  <label class="chip"><input type="checkbox" id="privacyAvatar" /> Profile photo</label>
+                </div>
+                <button class="btn" type="submit" style="margin-top: 10px;">Save Privacy</button>
+              </form>
+              <div style="margin-top: 14px;">
+                <div class="small">Public profile link: <a id="publicProfileLink" href="#" target="_blank">Loading...</a></div>
+                <img id="profileQr" alt="Profile QR" style="margin-top: 10px; border-radius: 12px; border: 1px solid #e6dcd2;" />
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-section" data-section="integrations">
+          <div class="grid">
+            <section class="card">
+              <h3>AI Integration</h3>
+              <p class="small">Connect OpenAI to unlock smart food estimates and meal plans.</p>
+              <form id="aiSettingsForm">
+                <div class="field">
+                  <label for="aiProvider">Provider</label>
+                  <select class="select" id="aiProvider">
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Gemini (Google)</option>
+                    <option value="anthropic">Claude (Anthropic)</option>
+                    <option value="xai">Grok (xAI)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="aiApiKey" id="aiApiKeyLabel">API key</label>
+                  <input class="input" type="password" id="aiApiKey" placeholder="Paste API key" />
+                </div>
+                <div class="field">
+                  <label for="aiModel">Model</label>
+                  <input class="input" type="text" id="aiModel" placeholder="gpt-4o-mini" list="aiModelOptions" />
+                  <datalist id="aiModelOptions"></datalist>
+                </div>
+                <label class="chip"><input type="checkbox" id="aiEnabledToggle" /> Enable AI features</label>
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                  <button class="btn" type="submit">Save AI Settings</button>
+                  <button class="btn btn-ghost" type="button" id="aiClearKey">Clear Key</button>
+                  <button class="btn btn-ghost" type="button" id="aiValidateKey">Validate Key</button>
+                </div>
+              </form>
+              <div class="small status" id="aiStatus"></div>
+              <div class="small" id="aiStatusMeta"></div>
+            </section>
+
+            <section class="card">
+              <h3>Samsung Health Sync (CSV)</h3>
+              <p class="small">Export your data from Samsung Health and import the CSV to sync steps, sleep, and weight.</p>
+              <div class="field">
+                <label for="importType">Import type</label>
+                <select class="select" id="importType">
+                  <option value="steps">Steps CSV</option>
+                  <option value="sleep">Sleep CSV</option>
+                  <option value="weight">Weight CSV</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="samsungImportFile">CSV file</label>
+                <input class="input" type="file" id="samsungImportFile" accept=".csv" />
+              </div>
+              <button class="btn" type="button" id="importSamsung">Import CSV</button>
+              <div class="small" id="importStatus"></div>
+            </section>
+
+            <section class="card">
+              <h3>Samsung Health Direct Sync</h3>
+              <p class="small">Direct live sync requires an Android companion app using Samsung Health SDK / Health Connect.</p>
+              <div class="small">For now, CSV import is fully supported and working. If you want live sync, I can add the companion app and secure token flow.</div>
+            </section>
+          </div>
+        </section>
+
+        <div class="footer">Built for clarity, consistency, and progress.</div>
+      </main>
+    </div>
+
+    <div class="modal" id="customFoodModal">
+      <div class="card modal-content">
+        <h3>Add custom food</h3>
+        <p class="small">We did not find that food. Add macros per 100g once and reuse it later.</p>
+        <form id="customFoodForm">
+          <div class="field">
+            <label for="customFoodName">Food name</label>
+            <input class="input" type="text" id="customFoodName" />
+          </div>
+          <div class="summary-row">
+            <div class="field">
+              <label for="customCalories">Calories / 100g</label>
+              <input class="input" type="number" id="customCalories" min="0" />
+            </div>
+            <div class="field">
+              <label for="customProtein">Protein / 100g</label>
+              <input class="input" type="number" id="customProtein" min="0" />
+            </div>
+            <div class="field">
+              <label for="customCarbs">Carbs / 100g</label>
+              <input class="input" type="number" id="customCarbs" min="0" />
+            </div>
+            <div class="field">
+              <label for="customFat">Fat / 100g</label>
+              <input class="input" type="number" id="customFat" min="0" />
+            </div>
+            <div class="field">
+              <label for="customFiber">Fiber / 100g</label>
+              <input class="input" type="number" id="customFiber" min="0" />
+            </div>
+            <div class="field">
+              <label for="customSodium">Sodium / 100g (mg)</label>
+              <input class="input" type="number" id="customSodium" min="0" />
+            </div>
+            <div class="field">
+              <label for="customCost">Cost / 100g</label>
+              <input class="input" type="number" id="customCost" min="0" step="0.1" />
+            </div>
+            <div class="field">
+              <label for="customCurrency">Currency</label>
+              <input class="input" type="text" id="customCurrency" placeholder="USD" />
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" type="submit">Save & Add</button>
+            <button class="btn btn-ghost" type="button" id="cancelCustom">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

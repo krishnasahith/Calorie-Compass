@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calorie Compass - Login</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="auth-shell">
+        <section class="hero">
+          <div class="brand">
+            <div class="brand-badge">CC</div>
+            <div>
+              <h1>Calorie Compass</h1>
+              <p>Track calories and macros with just a food name and grams.</p>
+            </div>
+          </div>
+          <p>
+            Stay consistent with smart targets, daily summaries, and a quick log that
+            keeps your nutrition on track.
+          </p>
+          <div class="stats">
+            <div class="stat">Auto macro math</div>
+            <div class="stat">Daily targets</div>
+            <div class="stat">Favorites</div>
+            <div class="stat">Quick search</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="auth-tabs">
+            <button class="tab active" data-tab="login">Login</button>
+            <button class="tab" data-tab="otp">OTP Login</button>
+            <button class="tab" data-tab="register">Create Account</button>
+          </div>
+
+          <form id="loginForm" autocomplete="on">
+            <div class="field">
+              <label for="loginEmail">Email</label>
+              <input class="input" type="email" id="loginEmail" required />
+            </div>
+            <div class="field">
+              <label for="loginPassword">Password</label>
+              <input class="input" type="password" id="loginPassword" required />
+            </div>
+            <button class="btn" type="submit">Sign In</button>
+            <div class="error" id="loginError"></div>
+          </form>
+
+          <form id="registerForm" autocomplete="on" style="display: none;">
+            <div class="field">
+              <label for="registerName">Name</label>
+              <input class="input" type="text" id="registerName" required />
+            </div>
+            <div class="field">
+              <label for="registerEmail">Email</label>
+              <input class="input" type="email" id="registerEmail" required />
+            </div>
+            <div class="field">
+              <label for="registerPhone">Phone (optional)</label>
+              <input class="input" type="text" id="registerPhone" placeholder="+123456789" />
+            </div>
+            <div class="field">
+              <label for="registerPassword">Password (min 6 chars)</label>
+              <input class="input" type="password" id="registerPassword" minlength="6" required />
+            </div>
+            <button class="btn" type="submit">Create Account</button>
+            <div class="error" id="registerError"></div>
+          </form>
+
+          <form id="otpForm" autocomplete="off" style="display: none;">
+            <div class="field">
+              <label for="otpContact">Email or phone</label>
+              <input class="input" type="text" id="otpContact" placeholder="you@email.com or +123456789" required />
+            </div>
+            <div class="field">
+              <label for="otpCode">OTP code</label>
+              <input class="input" type="text" id="otpCode" placeholder="6-digit code" />
+            </div>
+            <div style="display: grid; gap: 10px;">
+              <button class="btn btn-ghost" type="button" id="sendOtp">Send OTP</button>
+              <button class="btn" type="submit">Verify & Login</button>
+            </div>
+            <div class="small" id="otpStatus"></div>
+            <div class="error" id="otpError"></div>
+          </form>
+        </section>
+      </div>
+    </div>
+    <script src="/auth.js"></script>
+  </body>
+</html>
